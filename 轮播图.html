@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 利用图片坐标变化来改变显示图片 不使用封装的动画函数 直接切换-->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./CSS/reset.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_3157730_70a3jsd8rwm.css">
+    <title>轮播图1</title>
+    <style>
+        .wrap{
+            width: 600px;
+            height: 360px;
+            margin: 50px auto;
+            overflow: hidden;
+            position: relative;
+        }
+        .wrap .banner{
+            width: 2400px;
+            position: relative;  
+        }
+        .wrap li{
+            width: 600px;
+            float: left;
+        }
+        .wrap img{
+            width: 600px;
+        }
+        .wrap .pick{
+            width: 80px;
+            height: 30px;
+            position: absolute;
+            z-index: 3;
+            bottom: 0;
+            right: 20px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .pick li{
+            width: 12px;
+            height: 12px;
+            background-color: white;
+            border-radius: 50%;
+            opacity: .5;
+        }
+
+        .wrap .left-btn,.right-btn{
+            width: 30px;
+            height: 50px;
+            line-height: 50px;
+            color: #424242;
+            background-color: white;
+            position: absolute;
+            top:145px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity,.3;
+        }
+
+        .wrap .left-btn{
+            left: 0;
+        }
+
+        .wrap .right-btn{
+            right: 0;
+        }
+
+        .wrap .pick .on{
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <ul class="banner">
+            <li>
+                <img src="./img/山海1.jpg" alt="">
+            </li>
+            <li >
+                <img src="./img/山海2.jpg" alt="">
+            </li>
+            <li >
+                <img src="./img/山海3.jpg" alt="">
+            </li>
+            <li>
+                <img src="./img/山海4.jpg" alt="">
+            </li>
+        </ul>
+        <ul class="pick">
+            <li class="on"></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+        <div class="left-btn">
+            <i class="iconfont icon-fanhui"></i>
+        </div>
+        <div class="right-btn">
+            <i class="iconfont icon-gengduo"></i>
+        </div>
+    </div>
+    <script>
+        //轮播图实现 定时器移动图片位置 同时设置相应的小圆点为on状态
+        var banner = document.querySelector('.banner')
+        var pick = document.querySelector('.pick')
+        var l_btn = document.querySelector('.left-btn')
+        var r_btn = document.querySelector('.right-btn')
+        var wrap = document.querySelector('.wrap')
+        var len = banner.children.length
+        //鼠标移入显示前进后退按钮
+        wrap.addEventListener('mouseenter',function(){
+            l_btn.style.opacity = .5;
+            r_btn.style.opacity = .5;
+            clearInterval(timer);
+            timer = null;
+        })
+         //鼠标移出隐藏前进后退按钮
+        wrap.addEventListener('mouseleave',function(){
+            l_btn.style.opacity = 0;
+            r_btn.style.opacity = 0;
+            timer = setInterval(moveImage, 2000);
+        })
+
+        //设置一个flag标识记录移动次数 累计到图片数组长度减1清零重新开始
+        var flag = 0;
+        var moveX = 0;
+        var w = banner.children[0].offsetWidth;
+        function moveImage(){
+            //移动到最后一张图时，将图片设置到第一张
+            if(flag == len - 1){
+                pick.children[flag].className = '';
+                flag=0;
+                moveX = 0;
+                banner.style.left = 0;
+                pick.children[flag].className = 'on';
+            }else{//如果不是第一张 每次定时器调用时往左移一个图片宽度
+                moveX -= w;
+                banner.style.left = moveX + 'px';
+                flag++;
+                 //清除上一个选中的小圆点的样式
+                pick.children[flag - 1].className = '';
+                //设置选中图片对应圆点样式
+                pick.children[flag].className = 'on';
+            }
+           // console.log(flag);
+        }
+        //设置定时器让图片无限循环
+        var timer = setInterval(function(){
+            r_btn.click();
+        }, 3000);
+        //moveImage函数
+        //var timer = setInterval(moveImage, 3000);
+        //绑定左右两个按钮的事件
+        //点击左按钮图片往左移一个图片宽度，如果是第一张点击后则显示最后一张图
+        var flag_2 = 0;
+        l_btn.addEventListener('click',function(){
+            if(banner.offsetLeft == 0){ 
+                 //清除上一个选中的小圆点的样式
+                pick.children[0].className = '';
+                banner.style.left = -(len - 1)*w + 'px';
+                //计算当前是第几张图片
+                flag_2 = Math.abs(banner.offsetLeft) / w;
+                //设置选中图片对应圆点样式
+                pick.children[flag_2].className = 'on';
+            }else{
+                //向左点击图片右移
+                banner.style.left = banner.offsetLeft + w + 'px';
+                //计算当前是第几张图片
+                flag_2 = Math.abs(banner.offsetLeft) / w;
+                //清除上一个选中的小圆点的样式
+                pick.children[flag_2 + 1].className = '';
+                //设置选中图片对应圆点样式
+                pick.children[flag_2].className = 'on';
+            }
+            //setTimeout(2000);
+        })
+        //点击右按钮往右移一个图片宽度，如果是最后一张点击后显示第一张
+        var flag_3 = 0;
+        r_btn.addEventListener('click',function(){
+            if( banner.offsetLeft == -(len - 1)*w){ 
+                 //清楚小圆点的样式
+                pick.children[len - 1].className = '';
+                banner.style.left = 0;
+                //计算当前是第几张图片
+                flag_3 = Math.abs(banner.offsetLeft) / w;
+                //设置选中图片对应圆点样式
+                pick.children[flag_3].className = 'on';
+            }else{
+                //向右点击图片左移
+                banner.style.left = banner.offsetLeft - w + 'px';
+                //计算当前是第几张图片
+                flag_3 = Math.abs(banner.offsetLeft) / w;
+                //清除上一个选中的小圆点的样式
+                pick.children[flag_3 - 1].className = '';
+                //设置选中图片对应圆点样式
+                pick.children[flag_3].className = 'on';
+            }
+            //setTimeout(2000);
+        })
+
+        //绑定小圆点点击选中事件
+        for(let i = 0;i < pick.children.length;i++){
+            pick.children[i].addEventListener('click',function(){
+                //清除小圆点的样式
+                for(let i = 0;i < pick.children.length;i++){
+                    pick.children[i].className = '';
+                }
+                //设置选中图片对应圆点样式
+                pick.children[i].className = 'on';
+                //设置图片定位
+                banner.style.left = '-' + i * w + 'px';
+                //setTimeout(2000);
+            })
+        }
+    </script>
+</body>
+</html>
